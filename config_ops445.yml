@@ -1,0 +1,51 @@
+---
+- name: Configure OPS445 VM
+  hosts: vmlab
+  user: student
+  become: yes
+
+  tasks:
+    - name: Update Apache (httpd)
+      yum:
+        name: httpd
+        state: latest
+
+    - name: Install EPEL repository if not already installed
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Remove 'tree' package
+      yum:
+        name: tree
+        state: absent
+
+    - name: Set the hostname
+      hostname:
+        name: wkao4
+
+    - name: Create a new user with your Seneca_ID with sudo access
+      user:
+        name: wkao4
+        state: present
+        groups: wheel
+        append: yes
+
+    - name: Create .ssh directory for wkao4
+      file:
+        path: /home/wkao4/.ssh
+        state: directory
+        owner: wkao4
+
+    - name: Set authorized key taken from file
+      authorized_key:
+        user: wkao4
+        state: present
+        key: "{{ lookup('file', '/home/wkao4/.ssh/id_rsa.pub') }}"
+
+    - name: Setup a directory structure using a loop
+      file:
+        path: "/home/wkao4/ops445/lab{{ item }}"
+        state: directory
+        owner: wkao4
+      loop: [1,2,3,4,5,6,7,8,9]
